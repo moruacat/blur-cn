@@ -224,6 +224,7 @@ jobs:
               cp "$build_dir/blur-cli-$config.exe" "$bundle_dir/"
               cp "$build_dir/blur-$config.exe" "$bundle_dir/"
               cp installer/output/blur-installer.exe "$bundle_dir/blur-Windows-Installer-x64.exe"
+              cp -r resources/fonts "$bundle_dir/"
               ;;
 
             "Linux")
