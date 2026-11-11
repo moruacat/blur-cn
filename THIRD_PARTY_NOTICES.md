@@ -9,7 +9,7 @@ GNU General Public License v3.0; see `LICENSE`.
 The Simplified Chinese user interface uses the **HarmonyOS Sans SC** font.
 
 - Files bundled in this repository:
-  - `resources/fonts/HarmonyOS_Sans_SC_Regular.ttf` (unmodified original file)
+  - `resources/fonts/HarmonyOS_Sans_SC_Medium.ttf` (unmodified original file)
   - `resources/fonts/LICENSE.txt` (original license text)
 - Copyright 2021 Huawei Device Co., Ltd.
 - Licensed under the *HarmonyOS Sans Fonts License Agreement*. The full text is

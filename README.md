@@ -20,7 +20,14 @@ Join the [Discord](https://discord.gg/B5BK9GMN87) to share your configs, render 
 
 ### 中文字体
 
-界面中的中文字形来自 **HarmonyOS Sans SC**，随程序以未修改的原始文件形式分发（`resources/fonts/`）。字体许可证见 `resources/fonts/LICENSE.txt`，第三方声明见 `THIRD_PARTY_NOTICES.md`。
+界面中的中文字形来自 **HarmonyOS Sans SC Medium**，随程序以未修改的原始文件形式分发（`resources/fonts/`）。字体许可证见 `resources/fonts/LICENSE.txt`，第三方声明见 `THIRD_PARTY_NOTICES.md`。
+
+界面字号基于 15px（中文字形比拉丁字母需要更多像素才能看清）。如果你在高分屏上仍觉得字太小，可以设置环境变量后重启程序，无需重新构建：
+
+```powershell
+$env:BLUR_UI_FONT_SCALE = "1.25"   # 允许范围 0.5 ~ 4，默认 1.0
+.\blur-Windows-Release-x64.exe
+```
 
 ### 构建说明
 

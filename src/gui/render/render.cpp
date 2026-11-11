@@ -1,5 +1,7 @@
 #include "render.h"
 
+#include <cstdlib>
+
 #include <imgui.h>
 #include <backends/imgui_impl_sdl3.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -134,30 +136,71 @@ bool render::init(SDL_Window* window, const SDL_GLContext& context) {
 	}
 
 	const ImWchar* cjk_ranges = cjk_ranges_storage.Data;
-	const auto cjk_font_path = u::get_resources_path() / "fonts" / "HarmonyOS_Sans_SC_Regular.ttf";
-	const bool cjk_font_exists = std::filesystem::exists(cjk_font_path);
 
-	if (cjk_font_exists) {
-		if (!fonts::dejavu.init_from_file(cjk_font_path, 13.f, &font_cfg, cjk_ranges))
+	// Medium keeps small Chinese text readable: Regular strokes are thin enough
+	// that they smear together at UI sizes. Regular stays as a fallback so an
+	// older install (fonts dir from a previous version) still works.
+	static constexpr std::array<const char*, 2> cjk_font_names = {
+		"HarmonyOS_Sans_SC_Medium.ttf",
+		"HarmonyOS_Sans_SC_Regular.ttf",
+	};
+
+	const std::filesystem::path fonts_dir = u::get_resources_path() / "fonts";
+	std::filesystem::path cjk_font_path;
+	for (const auto name : cjk_font_names) {
+		std::filesystem::path candidate = fonts_dir / name;
+		if (std::filesystem::exists(candidate)) {
+			cjk_font_path = candidate;
+			break;
+		}
+	}
+
+	// Chinese glyphs need a couple more pixels than latin ones to stay legible,
+	// so the UI font starts at 15px instead of the latin 13px. The scale can be
+	// overridden at runtime with BLUR_UI_FONT_SCALE for people on large displays.
+	float ui_font_scale = 1.f;
+	if (const char* env_scale = std::getenv("BLUR_UI_FONT_SCALE")) {
+		const float parsed = std::strtof(env_scale, nullptr);
+		if (parsed >= 0.5f && parsed <= 4.f)
+			ui_font_scale = parsed;
+	}
+
+	const float body_font_size = 15.f * ui_font_scale;
+	const float smaller_header_font_size = 20.f * ui_font_scale;
+
+	// HarmonyOS Sans has no native hinting instructions, so ask FreeType for the
+	// auto-hinter (vertical-only, like ClearType). Without it the small CJK
+	// strokes are rasterised soft and look blurry.
+	ImFontConfig cjk_font_cfg = font_cfg;
+	cjk_font_cfg.FontBuilderFlags = static_cast<unsigned int>(
+		ImGuiFreeTypeBuilderFlags_LightHinting | ImGuiFreeTypeBuilderFlags_ForceAutoHint
+	);
+
+	if (!cjk_font_path.empty()) {
+		if (!fonts::dejavu.init_from_file(cjk_font_path, body_font_size, &cjk_font_cfg, cjk_ranges))
 			return false;
 
-		if (!fonts::smaller_header_font.init_from_file(cjk_font_path, 18.f, &font_cfg, cjk_ranges))
+		if (!fonts::smaller_header_font.init_from_file(
+				cjk_font_path, smaller_header_font_size, &cjk_font_cfg, cjk_ranges
+			))
 			return false;
 	}
 	else {
-		u::log_error("CJK font not found at '{}', falling back to the latin font", cjk_font_path.string());
+		u::log_error(
+			"CJK font not found in '{}', falling back to the latin font", fonts_dir.string()
+		);
 
-		if (!fonts::dejavu.init(DEJAVU_SANS_COMPRESSED_DATA, 13.f, &font_cfg, ranges))
+		if (!fonts::dejavu.init(DEJAVU_SANS_COMPRESSED_DATA, body_font_size, &font_cfg, ranges))
 			return false;
 
-		if (!fonts::smaller_header_font.init(EB_GARAMOND_COMPRESSED_DATA, 18.f, &font_cfg, ranges))
+		if (!fonts::smaller_header_font.init(EB_GARAMOND_COMPRESSED_DATA, smaller_header_font_size, &font_cfg, ranges))
 			return false;
 	}
 
 	if (!fonts::header_font.init(EB_GARAMOND_COMPRESSED_DATA, 30.f, &font_cfg, ranges))
 		return false;
 
-	if (!fonts::icons.init(ICONS_COMPRESSED_DATA, 14.f, &font_cfg, ranges))
+	if (!fonts::icons.init(ICONS_COMPRESSED_DATA, 15.f * ui_font_scale, &font_cfg, ranges))
 		return false;
 
 	return true;

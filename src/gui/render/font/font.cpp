@@ -7,6 +7,30 @@
 #include <imgui.h>
 #include <misc/freetype/imgui_freetype.h>
 
+namespace {
+	// ImGui 1.92 rasterises glyphs on demand and only stores the pointer passed to
+	// AddFontFromMemoryTTF, so the TTF bytes must outlive the atlas. Keep one copy
+	// per path (shared between the different font sizes) for the whole process.
+	std::vector<unsigned char>& font_file_data(const std::filesystem::path& path) {
+		static std::map<std::string, std::vector<unsigned char>> cache;
+
+		const std::string key = path.string();
+		auto it = cache.find(key);
+		if (it != cache.end())
+			return it->second;
+
+		std::ifstream stream(path, std::ios::binary);
+		if (!stream)
+			return cache[key];
+
+		std::vector<unsigned char> data{
+			(std::istreambuf_iterator<char>(stream)), (std::istreambuf_iterator<char>())
+		};
+
+		return cache.emplace(key, std::move(data)).first->second;
+	}
+}
+
 bool render::Font::init(
 	std::span<const unsigned char> data, float size, ImFontConfig* font_cfg, const ImWchar* glyph_ranges
 ) {
@@ -33,13 +57,7 @@ bool render::Font::init_from_file(
 ) {
 	// Read the file ourselves so non-ASCII paths work on Windows. ImGui's
 	// AddFontFromFileTTF uses fopen and would fail on those.
-	std::ifstream stream(path, std::ios::binary);
-	if (!stream)
-		return false;
-
-	std::vector<unsigned char> data(
-		(std::istreambuf_iterator<char>(stream)), (std::istreambuf_iterator<char>())
-	);
+	std::vector<unsigned char>& data = font_file_data(path);
 	if (data.size() <= 100)
 		return false;
 
@@ -50,7 +68,7 @@ bool render::Font::init_from_file(
 	if (!font_cfg)
 		font_cfg = &cfg;
 
-	// ImGui copies the data into memory it owns when this is false.
+	// The buffer is owned by the cache above, not by the atlas.
 	font_cfg->FontDataOwnedByAtlas = false;
 
 	m_font = io->Fonts->AddFontFromMemoryTTF(data.data(), (int)data.size(), m_size, font_cfg, glyph_ranges);
