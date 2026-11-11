@@ -5,7 +5,7 @@
 #include "../../ui/ui.h"
 
 namespace gui::components::configs { // naming it configs to avoid conflict with common lol
-	inline const std::vector<std::string> TABS = { "output video", "weightings" };
+	inline const std::vector<std::string> TABS = { "输出视频", "权重" };
 	inline std::string selected_tab = TABS[0];
 	inline std::string old_tab;
 	inline std::string hovered_weighting;

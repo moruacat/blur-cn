@@ -99,7 +99,7 @@ void configs::config_preview(ui::Container& container) {
 								gui::components::notifications::close(id);
 
 								gui::components::notifications::add(
-									"Copied error message to clipboard",
+									"已复制错误信息到剪贴板",
 									ui::NotificationType::INFO,
 									{},
 									std::chrono::duration<float>(2.f)
@@ -141,7 +141,7 @@ void configs::config_preview(ui::Container& container) {
 					ui::add_text(
 						"loading config preview text",
 						container,
-						"Loading config preview...",
+						"正在加载配置预览...",
 						gfx::Color::white(100),
 						fonts::dejavu,
 						FONT_CENTERED_X
@@ -151,7 +151,7 @@ void configs::config_preview(ui::Container& container) {
 					ui::add_text(
 						"failed to generate preview text",
 						container,
-						"Failed to generate preview.",
+						"预览生成失败。",
 						gfx::Color::white(100),
 						fonts::dejavu,
 						FONT_CENTERED_X
@@ -162,7 +162,7 @@ void configs::config_preview(ui::Container& container) {
 				ui::add_text(
 					"sample video does not exist text",
 					container,
-					"No preview video found.",
+					"未找到预览视频。",
 					gfx::Color::white(100),
 					fonts::dejavu,
 					FONT_CENTERED_X
@@ -171,13 +171,13 @@ void configs::config_preview(ui::Container& container) {
 				ui::add_text(
 					"sample video does not exist text 2",
 					container,
-					"Drop a video here to add one.",
+					"将视频拖放到此处以添加。",
 					gfx::Color::white(100),
 					fonts::dejavu,
 					FONT_CENTERED_X
 				);
 
-				ui::add_button("open preview file button", container, "Or open file", fonts::dejavu, [] {
+				ui::add_button("open preview file button", container, "或打开文件", fonts::dejavu, [] {
 					static auto file_callback = [](void* userdata, const char* const* files, int filter) {
 						if (files != nullptr && *files != nullptr) {
 							const char* file = *files;
@@ -186,7 +186,7 @@ void configs::config_preview(ui::Container& container) {
 					};
 
 					const SDL_DialogFileFilter filters[] = {
-						{ "Video files",
+						{ "视频文件",
 						  "webm;mkv;flv;vob;ogv;ogg;rrc;gifv;mng;mov;avi;qt;wmv;yuv;rm;rmvb;asf;amv;mp4;m4p;m4v;mpg;"
 						  "mp2;mpeg;mpe;"
 						  "mpv;svi;3gp;3g2;mxf;roq;nsv;f4v;f4p;f4a;f4b;mod;ts;m2ts;mts;divx;bik;wtv;drc" }
@@ -229,7 +229,7 @@ void configs::preview(ui::Container& header_container, ui::Container& content_co
 		old_tab.clear();
 	});
 
-	if (selected_tab == "output video") {
+	if (selected_tab == TABS[0]) {
 		config_preview(content_container);
 	}
 	else {
@@ -268,24 +268,24 @@ void configs::preview(ui::Container& header_container, ui::Container& content_co
 		);
 
 		ui::add_button(
-			"fix config button", content_container, "Reset invalid config options to defaults", fonts::dejavu, [&] {
+			"fix config button", content_container, "将无效配置项重置为默认值", fonts::dejavu, [&] {
 				config_blur::validate(settings, true);
 			}
 		);
 	}
 
-	ui::add_button("export config", content_container, "Export", fonts::dejavu, [] {
+	ui::add_button("export config", content_container, "导出", fonts::dejavu, [] {
 		std::string exported_config = config_blur::export_concise(settings);
 		SDL_SetClipboardText(exported_config.c_str());
 
 		gui::components::notifications::add(
-			"Exported config to clipboard", ui::NotificationType::INFO, {}, std::chrono::duration<float>(2.f)
+			"配置已导出到剪贴板", ui::NotificationType::INFO, {}, std::chrono::duration<float>(2.f)
 		);
 	});
 
 	ui::set_next_same_line(content_container);
 
-	ui::add_button("import config", content_container, "Import", fonts::dejavu, [] {
+	ui::add_button("import config", content_container, "导入", fonts::dejavu, [] {
 		size_t len = 0;
 		void* clipboard_data = SDL_GetClipboardData("text/plain", &len);
 
@@ -300,7 +300,7 @@ void configs::preview(ui::Container& header_container, ui::Container& content_co
 				settings = clipboard_settings;
 
 				gui::components::notifications::add(
-					"Imported config from clipboard", ui::NotificationType::INFO, {}, std::chrono::duration<float>(2.f)
+					"已从剪贴板导入配置", ui::NotificationType::INFO, {}, std::chrono::duration<float>(2.f)
 				);
 			}
 			catch (const std::exception& e) {
@@ -322,7 +322,7 @@ void configs::preview(ui::Container& header_container, ui::Container& content_co
 		}
 	});
 
-	ui::add_button("open config folder", content_container, "Open config folder", fonts::dejavu, [] {
+	ui::add_button("open config folder", content_container, "打开配置文件夹", fonts::dejavu, [] {
 		std::string file_url = std::format("file://{}", blur.settings_path);
 		if (!SDL_OpenURL(file_url.c_str())) {
 			u::log_error("Failed to open config folder: {}", SDL_GetError());

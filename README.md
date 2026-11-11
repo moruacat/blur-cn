@@ -12,6 +12,25 @@ Blur is a native desktop application made for easily and efficiently adding moti
 
 Join the [Discord](https://discord.gg/B5BK9GMN87) to share your configs, render tests and ask the community for help.
 
+## 简体中文界面
+
+这是 [f0e/blur](https://github.com/f0e/blur) 的简体中文汉化分支。汉化范围仅限图形界面（设置项、按钮、通知和提示）；日志、报错信息和 `--help` 等文本保持英文，方便搜索和向上游反馈。
+
+汉化版通过仓库自带的 GitHub Actions 工作流构建：推送到自己的 fork 后，在对应 Actions 运行的 **Artifacts** 中下载 `Blur-Release`，其中包含 Windows 安装包 `blur-Windows-Installer-x64.exe`。
+
+### 中文字体
+
+界面中的中文字形来自 **HarmonyOS Sans SC**，随程序以未修改的原始文件形式分发（`resources/fonts/`）。字体许可证见 `resources/fonts/LICENSE.txt`，第三方声明见 `THIRD_PARTY_NOTICES.md`。
+
+### 构建说明
+
+- Windows 构建需要 MSVC，本项目已在 `CMakeLists.txt` 中启用 `/utf-8`，因此中文源码无需 BOM 即可正确编译。
+- 字体文件会在构建后自动复制到可执行文件旁的 `fonts` 目录；安装包也会包含该目录。
+- 若字体文件缺失，程序会回退到内置的拉丁字体并记录一条错误日志（中文将显示为占位符）。
+
+> 注意：汉化改动不会自动跟随上游更新。上游发布新版本后，需要重新合并本分支的改动并重新构建。
+
+
 ## Download
 
 - [Windows installer](https://github.com/f0e/blur/releases/latest/download/blur-Windows-Installer-x64.exe)

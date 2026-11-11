@@ -10,6 +10,8 @@
 #include "../fonts/icons.h"
 #include "imgui_internal.h"
 
+#include "common/utils.h"
+
 namespace {
 	gfx::Color interpolate_color(const std::vector<gfx::Color>& colors, const std::vector<float>& positions, float t) {
 		// Find the segment containing t
@@ -99,14 +101,60 @@ bool render::init(SDL_Window* window, const SDL_GLContext& context) {
 	ImFontConfig font_cfg;
 	font_cfg.RasterizerDensity = SDL_GetWindowPixelDensity(window); // TODO PORT: update when changing screen
 
-	// init fonts
-	if (!fonts::dejavu.init(DEJAVU_SANS_COMPRESSED_DATA, 13.f, &font_cfg, ranges))
-		return false;
+	// Chinese-capable UI font. It's shipped next to the executable instead of
+	// being embedded because the font file is quite large (~8MB). If it's
+	// missing we fall back to the embedded latin-only font so the app still
+	// starts (Chinese text will show as placeholder glyphs).
+	//
+	// imgui's "common" simplified Chinese set is missing a few characters used
+	// by the zh-CN translation, so append them to a copy of the range list.
+	static ImVector<ImWchar> cjk_ranges_storage;
+	if (cjk_ranges_storage.empty()) {
+		const ImWchar* common = imgui.io->Fonts->GetGlyphRangesChineseSimplifiedCommon();
+		for (const ImWchar* range = common; *range; range += 2) {
+			cjk_ranges_storage.push_back(range[0]);
+			cjk_ranges_storage.push_back(range[1]);
+		}
+
+		static constexpr ImWchar extra_glyphs[] = {
+			0x6E32, // 渲
+			0x9891, // 频
+			0x5E27, // 帧
+			0x4F3D, // 伽
+			0x9608, // 阈
+			0x5D4C, // 嵌
+		};
+
+		for (const ImWchar glyph : extra_glyphs) {
+			cjk_ranges_storage.push_back(glyph);
+			cjk_ranges_storage.push_back(glyph);
+		}
+
+		cjk_ranges_storage.push_back(0);
+	}
+
+	const ImWchar* cjk_ranges = cjk_ranges_storage.Data;
+	const auto cjk_font_path = u::get_resources_path() / "fonts" / "HarmonyOS_Sans_SC_Regular.ttf";
+	const bool cjk_font_exists = std::filesystem::exists(cjk_font_path);
+
+	if (cjk_font_exists) {
+		if (!fonts::dejavu.init_from_file(cjk_font_path, 13.f, &font_cfg, cjk_ranges))
+			return false;
+
+		if (!fonts::smaller_header_font.init_from_file(cjk_font_path, 18.f, &font_cfg, cjk_ranges))
+			return false;
+	}
+	else {
+		u::log_error("CJK font not found at '{}', falling back to the latin font", cjk_font_path.string());
+
+		if (!fonts::dejavu.init(DEJAVU_SANS_COMPRESSED_DATA, 13.f, &font_cfg, ranges))
+			return false;
+
+		if (!fonts::smaller_header_font.init(EB_GARAMOND_COMPRESSED_DATA, 18.f, &font_cfg, ranges))
+			return false;
+	}
 
 	if (!fonts::header_font.init(EB_GARAMOND_COMPRESSED_DATA, 30.f, &font_cfg, ranges))
-		return false;
-
-	if (!fonts::smaller_header_font.init(EB_GARAMOND_COMPRESSED_DATA, 18.f, &font_cfg, ranges))
 		return false;
 
 	if (!fonts::icons.init(ICONS_COMPRESSED_DATA, 14.f, &font_cfg, ranges))

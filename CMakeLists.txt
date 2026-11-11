@@ -12,6 +12,12 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 project(blur LANGUAGES C CXX)
 
+# Treat source files and the execution charset as UTF-8 so localized (CJK)
+# string literals compile correctly with MSVC on any system locale.
+if(MSVC)
+  add_compile_options(/utf-8)
+endif()
+
 # global settings
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -114,6 +120,14 @@ function(setup_target target)
     COMMAND ${CMAKE_COMMAND} -E make_directory ${BUILD_RESOURCES_DIR}/lib
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${PROJECT_SOURCE_DIR}/src/vapoursynth" ${BUILD_RESOURCES_DIR}/lib)
+
+  # copy bundled fonts (used for CJK/localized UI)
+  add_custom_command(
+    TARGET ${target}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${BUILD_RESOURCES_DIR}/fonts
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${PROJECT_SOURCE_DIR}/resources/fonts" ${BUILD_RESOURCES_DIR}/fonts)
 endfunction()
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -215,6 +229,13 @@ if(APPLE)
     COMMAND
       ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/src/vapoursynth"
       "$<TARGET_BUNDLE_DIR:blur>/Contents/Resources/lib"
+    # Copy bundled fonts
+    COMMAND ${CMAKE_COMMAND} -E echo "Copying bundled fonts..."
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+            "$<TARGET_BUNDLE_DIR:blur>/Contents/Resources/fonts"
+    COMMAND
+      ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/resources/fonts"
+      "$<TARGET_BUNDLE_DIR:blur>/Contents/Resources/fonts"
     # Verify the copy worked
     COMMAND ${CMAKE_COMMAND} -E echo "Resource copying complete"
     # The VERBATIM flag ensures command arguments are correctly escaped

@@ -59,7 +59,7 @@ void ui::render_weighting_graph(const Container& container, const AnimatedElemen
 		render::text(
 			rect.center(),
 			gfx::Color(180, 180, 180, anim * 255),
-			"no blur frames",
+			"无模糊帧",
 			fonts::dejavu,
 			FONT_CENTERED_X | FONT_CENTERED_Y
 		);
@@ -147,7 +147,7 @@ void ui::render_weighting_graph(const Container& container, const AnimatedElemen
 	render::text(
 		{ graph_rect.center().x, graph_rect.y2() },
 		label_color,
-		graph_data.accurate_fps ? std::format("blur frame ({})", count) : "blur frames depend on input fps",
+		graph_data.accurate_fps ? std::format("模糊帧（{}）", count) : "模糊帧数取决于输入帧率",
 		fonts::dejavu,
 		FONT_CENTERED_X | FONT_BOTTOM_ALIGN
 	);

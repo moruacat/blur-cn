@@ -150,7 +150,7 @@ bool gui::renderer::redraw_window(bool rendered_last, bool want_to_render) {
 					ui::add_button(
 						(*current_render)->is_paused() ? "resume render button" : "pause render button",
 						nav_container,
-						(*current_render)->is_paused() ? "Resume" : "Pause",
+						(*current_render)->is_paused() ? "继续" : "暂停",
 						fonts::dejavu,
 						[] {
 							auto current_render = rendering.get_current_render();
@@ -162,18 +162,18 @@ bool gui::renderer::redraw_window(bool rendered_last, bool want_to_render) {
 					);
 
 					ui::set_next_same_line(nav_container);
-					ui::add_button("stop render button", nav_container, "Cancel", fonts::dejavu, [] {
+					ui::add_button("stop render button", nav_container, "取消", fonts::dejavu, [] {
 						auto current_render = rendering.get_current_render();
 						if (current_render)
 							(*current_render)->stop();
 					});
 
 					ui::set_next_same_line(nav_container);
-					components::main::open_files_button(nav_container, "Add files");
+					components::main::open_files_button(nav_container, "添加文件");
 				}
 
 				ui::set_next_same_line(nav_container);
-				ui::add_button("config button", nav_container, "Config", fonts::dejavu, [] {
+				ui::add_button("config button", nav_container, "设置", fonts::dejavu, [] {
 					screen = Screens::CONFIG;
 				});
 			}
@@ -186,7 +186,7 @@ bool gui::renderer::redraw_window(bool rendered_last, bool want_to_render) {
 			components::configs::should_load_config = true;
 
 			ui::set_next_same_line(nav_container);
-			ui::add_button("back button", nav_container, "Back", fonts::dejavu, [] {
+			ui::add_button("back button", nav_container, "返回", fonts::dejavu, [] {
 				screen = Screens::MAIN;
 			});
 
@@ -303,7 +303,7 @@ void gui::renderer::on_render_finished(Render* render, const tl::expected<Render
 				gui::components::notifications::close(id);
 
 				gui::components::notifications::add(
-					"Copied error message to clipboard",
+					"已复制错误信息到剪贴板",
 					ui::NotificationType::INFO,
 					{},
 					std::chrono::duration<float>(2.f)
@@ -321,7 +321,7 @@ void gui::renderer::on_render_finished(Render* render, const tl::expected<Render
 
 	if (result->stopped) {
 		gui::components::notifications::add(
-			std::format("Render '{}' stopped", render->get_video_name()), ui::NotificationType::INFO
+			std::format("渲染“{}”已停止", render->get_video_name()), ui::NotificationType::INFO
 		);
 		return;
 	}
@@ -329,7 +329,7 @@ void gui::renderer::on_render_finished(Render* render, const tl::expected<Render
 	auto output_path = render->get_output_video_path();
 
 	gui::components::notifications::add(
-		std::format("Render '{}' completed", render->get_video_name()),
+		std::format("渲染“{}”已完成", render->get_video_name()),
 		ui::NotificationType::SUCCESS,
 		[output_path](const std::string& id) {
 			std::string file_url = std::format("file://{}", output_path);
@@ -341,6 +341,6 @@ void gui::renderer::on_render_finished(Render* render, const tl::expected<Render
 
 	auto app_config = config_app::get_app_config();
 	if (app_config.render_success_notifications) {
-		desktop_notification::show("Blur render complete", "Render completed successfully");
+		desktop_notification::show("Blur 渲染完成", "渲染已成功完成");
 	}
 }

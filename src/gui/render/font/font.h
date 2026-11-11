@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+
 #include <imgui.h>
 
 namespace render {
@@ -12,6 +14,12 @@ namespace render {
 
 	public:
 		bool init(std::span<const unsigned char> data, float size, ImFontConfig* font_cfg, const ImWchar* glyph_ranges);
+
+		// Loads a TTF from disk. Used for fonts that can't be embedded in the binary
+		// (e.g. CJK fonts). Falls back to false when the file can't be read.
+		bool init_from_file(
+			const std::filesystem::path& path, float size, ImFontConfig* font_cfg, const ImWchar* glyph_ranges
+		);
 
 		[[nodiscard]] gfx::Size calc_size(const std::string& text) const;
 

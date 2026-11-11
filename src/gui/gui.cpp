@@ -70,7 +70,7 @@ int gui::run() {
 							gui::renderer::screen = gui::renderer::Screens::CONFIG;
 
 							gui::components::notifications::add(
-								"Imported config", ui::NotificationType::INFO, {}, std::chrono::duration<float>(2.f)
+								"已导入配置", ui::NotificationType::INFO, {}, std::chrono::duration<float>(2.f)
 							);
 						}
 						catch (const std::exception& e) {

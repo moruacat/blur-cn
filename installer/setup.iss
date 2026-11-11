@@ -45,6 +45,7 @@ Name: envPath; Description: "Add to PATH"; GroupDescription: "{cm:AdditionalIcon
 Source: ".\resources\blur-gui.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\resources\blur-cli.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\dependencies\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\resources\fonts\*"; DestDir: "{app}\fonts"; Flags: ignoreversion
 Source: ".\redist\VC_redist.x64.exe"; DestDir: {tmp}; Flags: deleteafterinstall
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

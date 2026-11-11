@@ -32,7 +32,7 @@ void configs::screen(
 		ui::add_text(
 			"config loading text",
 			config_container,
-			"Loading config...",
+			"正在加载配置...",
 			gfx::Color::white(100),
 			fonts::dejavu,
 			FONT_CENTERED_X
@@ -53,12 +53,12 @@ void configs::screen(
 
 	if (config_changed) {
 		ui::set_next_same_line(nav_container);
-		ui::add_button("save button", nav_container, "Save", fonts::dejavu, [&] {
+		ui::add_button("save button", nav_container, "保存", fonts::dejavu, [&] {
 			save_config();
 		});
 
 		ui::set_next_same_line(nav_container);
-		ui::add_button("reset changes button", nav_container, "Reset changes", fonts::dejavu, [&] {
+		ui::add_button("reset changes button", nav_container, "重置更改", fonts::dejavu, [&] {
 			ui::reset_tied_sliders();
 			settings = current_global_settings;
 			app_settings = current_app_settings;
@@ -68,7 +68,7 @@ void configs::screen(
 
 	if (config_not_default) {
 		ui::set_next_same_line(nav_container);
-		ui::add_button("restore defaults button", nav_container, "Restore defaults", fonts::dejavu, [] {
+		ui::add_button("restore defaults button", nav_container, "恢复默认", fonts::dejavu, [] {
 			ui::reset_tied_sliders();
 			settings = config_blur::DEFAULT_CONFIG;
 			app_settings = config_app::DEFAULT_CONFIG;

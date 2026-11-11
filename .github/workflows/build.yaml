@@ -231,6 +231,7 @@ jobs:
               mv blur "package/blur-$config"
               mv lib/ package/
               cp -r ../../ci/out/* package/
+              cp -r ../../resources/fonts package/
               tar -czf "$bundle_dir/blur-$config.tar.gz" -C package .
               ;;
 
