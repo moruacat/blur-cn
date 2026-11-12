@@ -2,6 +2,11 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <ctime>
+#include <filesystem>
+#include <format>
+#include <fstream>
+#include <string>
 #include <system_error>
 
 #include <imgui.h>
@@ -45,6 +50,40 @@ namespace {
 			static_cast<uint8_t>(c1.b + (segment_t * (c2.b - c1.b))),
 			static_cast<uint8_t>(c1.a + (segment_t * (c2.a - c1.a))),
 		};
+	}
+
+	// The GUI build has no console, and Windows hides stdout for windowed apps.
+	// Mirror the font/DPI diagnostics into a file so rendering problems can be
+	// investigated from a user report without asking them to run a console build.
+	void write_ui_diagnostics(const std::string& message) {
+		std::error_code ec;
+		std::filesystem::path dir;
+		if (const char* appdata = std::getenv("APPDATA"); appdata != nullptr && *appdata != '\0')
+			dir = std::filesystem::path(appdata) / "blur";
+		else
+			dir = std::filesystem::temp_directory_path(ec);
+
+		if (ec)
+			return;
+
+		std::filesystem::create_directories(dir, ec);
+		if (ec)
+			return;
+
+		std::ofstream file(dir / "ui-diagnostics.txt", std::ios::app);
+		if (!file)
+			return;
+
+		const std::time_t now = std::time(nullptr);
+		std::tm local_time{};
+#ifdef _WIN32
+		localtime_s(&local_time, &now);
+#else
+		localtime_r(&now, &local_time);
+#endif
+		char stamp[32] = {};
+		std::strftime(stamp, sizeof(stamp), "%Y-%m-%d %H:%M:%S", &local_time);
+		file << stamp << ' ' << message << '\n';
 	}
 }
 
@@ -230,8 +269,8 @@ bool render::init(SDL_Window* window, const SDL_GLContext& context) {
 	}
 
 	if (!cjk_font.path.empty()) {
-		u::log(
-			"ui: using CJK font '{}' face {} at {}px (heading {}px), window {}x{}, framebuffer {}x{}, scale {:.2f}, "
+		const std::string diagnostics = std::format(
+			"ui: using CJK font '{}' face {} at {}px (heading {}px), window {}x{}, framebuffer {}x{} @ {:.2f}x, "
 			"display scale {:.2f}, ui scale {:.2f}",
 			cjk_font.path.filename().string(),
 			cjk_font.face_index,
@@ -245,6 +284,8 @@ bool render::init(SDL_Window* window, const SDL_GLContext& context) {
 			display_scale(),
 			ui_font_scale
 		);
+		u::log("{}", diagnostics);
+		write_ui_diagnostics(diagnostics);
 
 		if (!fonts::dejavu.init_from_file(cjk_font.path, body_font_size, &cjk_font_cfg, cjk_ranges))
 			return false;
@@ -359,14 +400,17 @@ void render::ImGuiWrap::end(SDL_Window* window) { // NOLINT(readability-convert-
 	if (!logged_font_atlas) {
 		logged_font_atlas = true;
 		const ImGuiIO& io = ImGui::GetIO();
-		u::log(
-			"ui: font atlas {}x{}, display {:.0f}x{:.0f} @ {:.2f}x",
+		const std::string atlas = std::format(
+			"ui: font atlas {}x{}, display {:.0f}x{:.0f} @ {:.2f}x, os display scale {:.2f}",
 			io.Fonts->TexWidth,
 			io.Fonts->TexHeight,
 			io.DisplaySize.x,
 			io.DisplaySize.y,
-			io.DisplayFramebufferScale.x
+			io.DisplayFramebufferScale.x,
+			display_scale()
 		);
+		u::log("{}", atlas);
+		write_ui_diagnostics(atlas);
 	}
 
 	int drawable_width = 0;
