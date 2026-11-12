@@ -1,6 +1,8 @@
 #include "render.h"
 
+#include <cmath>
 #include <cstdlib>
+#include <system_error>
 
 #include <imgui.h>
 #include <backends/imgui_impl_sdl3.h>
@@ -100,8 +102,21 @@ bool render::init(SDL_Window* window, const SDL_GLContext& context) {
 	// ^ TODO: RANDOM CRASH TODO REFACTOR  IMPORTANT FIX  YES
 	const auto* ranges = imgui.io->Fonts->GetGlyphRangesDefault();
 
+	// Glyphs are baked at the physical resolution of the framebuffer so the GPU
+	// never has to resample them. SDL_GetWindowPixelDensity() is not enough here
+	// (it only reflects HiDPI window flags), so measure the ratio the same way
+	// the ImGui backend does when it sets DisplayFramebufferScale.
+	int window_w = 0;
+	int window_h = 0;
+	int pixel_w = 0;
+	int pixel_h = 0;
+	SDL_GetWindowSize(window, &window_w, &window_h);
+	SDL_GetWindowSizeInPixels(window, &pixel_w, &pixel_h);
+	const float framebuffer_scale =
+		(window_w > 0 && window_h > 0) ? static_cast<float>(pixel_w) / static_cast<float>(window_w) : 1.f;
+
 	ImFontConfig font_cfg;
-	font_cfg.RasterizerDensity = SDL_GetWindowPixelDensity(window); // TODO PORT: update when changing screen
+	font_cfg.RasterizerDensity = framebuffer_scale; // TODO PORT: update when changing screen
 
 	// Chinese-capable UI font. It's shipped next to the executable instead of
 	// being embedded because the font file is quite large (~8MB). If it's
@@ -145,13 +160,37 @@ bool render::init(SDL_Window* window, const SDL_GLContext& context) {
 		"HarmonyOS_Sans_SC_Regular.ttf",
 	};
 
+	// Chinese UI font. Windows ships "Microsoft YaHei UI", which comes with
+	// native hinting instructions: its stems snap to the pixel grid, which is
+	// why Explorer, Notepad and ClassIsland look sharp at UI sizes. Prefer it,
+	// and fall back to the bundled HarmonyOS Sans (auto-hinted by FreeType) on
+	// systems that don't have it.
+	struct CjkFontSource {
+		std::filesystem::path path;
+		int face_index = 0;
+		bool native_hinting = false;
+	};
+
+	CjkFontSource cjk_font;
+	{
+		std::error_code ec;
+		const char* windir = std::getenv("WINDIR");
+		std::filesystem::path yahei =
+			windir ? std::filesystem::path(windir) / "Fonts" / "msyh.ttc" : std::filesystem::path();
+
+		if (!yahei.empty() && std::filesystem::exists(yahei, ec))
+			cjk_font = { yahei, 1, true }; // face 1 is "Microsoft YaHei UI"
+	}
+
 	const std::filesystem::path fonts_dir = u::get_resources_path() / "fonts";
-	std::filesystem::path cjk_font_path;
-	for (const auto name : cjk_font_names) {
-		std::filesystem::path candidate = fonts_dir / name;
-		if (std::filesystem::exists(candidate)) {
-			cjk_font_path = candidate;
-			break;
+	if (cjk_font.path.empty()) {
+		for (const auto name : cjk_font_names) {
+			std::filesystem::path candidate = fonts_dir / name;
+			std::error_code ec;
+			if (std::filesystem::exists(candidate, ec)) {
+				cjk_font = { candidate, 0, false };
+				break;
+			}
 		}
 	}
 
@@ -160,29 +199,64 @@ bool render::init(SDL_Window* window, const SDL_GLContext& context) {
 	// glyphs also need a couple more pixels than latin ones to stay legible, so
 	// the body font starts at 15 instead of the latin 13.
 	const float ui_font_scale = ui_scale();
-	const float body_font_size = 15.f * ui_font_scale;
-	const float smaller_header_font_size = 20.f * ui_font_scale;
 
-	// HarmonyOS Sans has no native hinting instructions, so ask FreeType for the
-	// auto-hinter (vertical-only, like ClearType). Without it the small CJK
-	// strokes are rasterised soft and look blurry.
+	// YaHei draws its ideographs smaller inside the em box than HarmonyOS Sans,
+	// so request a slightly larger size to keep the same on-screen size. This
+	// lands on a 17px em, which is what native Windows apps use at 100% scaling.
+	const float cjk_size_boost = cjk_font.native_hinting ? 1.13f : 1.f;
+
+	// Whole-pixel sizes: hinting aligns stems to the pixel grid, and a
+	// fractional size defeats it (which is what made the text look soft).
+	const float body_font_size = std::round(15.f * cjk_size_boost * ui_font_scale);
+	const float smaller_header_font_size = std::round(20.f * cjk_size_boost * ui_font_scale);
+
 	ImFontConfig cjk_font_cfg = font_cfg;
-	cjk_font_cfg.FontBuilderFlags = static_cast<unsigned int>(
-		ImGuiFreeTypeBuilderFlags_LightHinting | ImGuiFreeTypeBuilderFlags_ForceAutoHint
-	);
+	cjk_font_cfg.FontNo = cjk_font.face_index;
 
-	if (!cjk_font_path.empty()) {
-		if (!fonts::dejavu.init_from_file(cjk_font_path, body_font_size, &cjk_font_cfg, cjk_ranges))
+	// Integer advances keep each glyph on the pixel grid instead of letting the
+	// GPU resample it at a fractional offset.
+	cjk_font_cfg.PixelSnapH = true;
+
+	// ImGui always rasterises grayscale antialiasing, which reads thinner than
+	// the ClearType-style rendering Windows apps use, so nudge coverage up.
+	cjk_font_cfg.RasterizerMultiply = 1.08f;
+
+	if (!cjk_font.native_hinting) {
+		// HarmonyOS Sans has no hinting instructions of its own, so ask FreeType
+		// for the auto-hinter (vertical-only, like ClearType).
+		cjk_font_cfg.FontBuilderFlags = static_cast<unsigned int>(
+			ImGuiFreeTypeBuilderFlags_LightHinting | ImGuiFreeTypeBuilderFlags_ForceAutoHint
+		);
+	}
+
+	if (!cjk_font.path.empty()) {
+		u::log(
+			"ui: using CJK font '{}' face {} at {}px (heading {}px), window {}x{}, framebuffer {}x{}, scale {:.2f}, "
+			"ui scale {:.2f}",
+			cjk_font.path.filename().string(),
+			cjk_font.face_index,
+			body_font_size,
+			smaller_header_font_size,
+			window_w,
+			window_h,
+			pixel_w,
+			pixel_h,
+			framebuffer_scale,
+			ui_font_scale
+		);
+
+		if (!fonts::dejavu.init_from_file(cjk_font.path, body_font_size, &cjk_font_cfg, cjk_ranges))
 			return false;
 
 		if (!fonts::smaller_header_font.init_from_file(
-				cjk_font_path, smaller_header_font_size, &cjk_font_cfg, cjk_ranges
+				cjk_font.path, smaller_header_font_size, &cjk_font_cfg, cjk_ranges
 			))
 			return false;
 	}
 	else {
 		u::log_error(
-			"CJK font not found in '{}', falling back to the latin font", fonts_dir.string()
+			"CJK font not found in '{}' or the Windows font directory, falling back to the latin font",
+			fonts_dir.string()
 		);
 
 		if (!fonts::dejavu.init(DEJAVU_SANS_COMPRESSED_DATA, body_font_size, &font_cfg, ranges))
@@ -192,10 +266,10 @@ bool render::init(SDL_Window* window, const SDL_GLContext& context) {
 			return false;
 	}
 
-	if (!fonts::header_font.init(EB_GARAMOND_COMPRESSED_DATA, 30.f * ui_font_scale, &font_cfg, ranges))
+	if (!fonts::header_font.init(EB_GARAMOND_COMPRESSED_DATA, std::round(30.f * ui_font_scale), &font_cfg, ranges))
 		return false;
 
-	if (!fonts::icons.init(ICONS_COMPRESSED_DATA, 15.f * ui_font_scale, &font_cfg, ranges))
+	if (!fonts::icons.init(ICONS_COMPRESSED_DATA, std::round(15.f * ui_font_scale), &font_cfg, ranges))
 		return false;
 
 	return true;
@@ -262,6 +336,20 @@ void render::ImGuiWrap::end(SDL_Window* window) { // NOLINT(readability-convert-
 	late_draw_calls.clear();
 
 	ImGui::Render();
+
+	static bool logged_font_atlas = false;
+	if (!logged_font_atlas) {
+		logged_font_atlas = true;
+		const ImGuiIO& io = ImGui::GetIO();
+		u::log(
+			"ui: font atlas {}x{}, display {:.0f}x{:.0f} @ {:.2f}x",
+			io.Fonts->TexWidth,
+			io.Fonts->TexHeight,
+			io.DisplaySize.x,
+			io.DisplaySize.y,
+			io.DisplayFramebufferScale.x
+		);
+	}
 
 	int drawable_width = 0;
 	int drawable_height = 0;

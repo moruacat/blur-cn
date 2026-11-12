@@ -6,7 +6,8 @@ GNU General Public License v3.0; see `LICENSE`.
 
 ## HarmonyOS Sans
 
-The Simplified Chinese user interface uses the **HarmonyOS Sans SC** font.
+The Simplified Chinese user interface **falls back** to the **HarmonyOS Sans SC**
+font on systems where the Windows system font is not available.
 
 - Files bundled in this repository:
   - `resources/fonts/HarmonyOS_Sans_SC_Medium.ttf` (unmodified original file)
@@ -19,6 +20,13 @@ The Simplified Chinese user interface uses the **HarmonyOS Sans SC** font.
   renamed, or otherwise altered.
 - The font is bundled with the application solely so that the localized user
   interface can render Chinese text.
+
+## Microsoft YaHei UI
+
+On Windows the localized interface prefers the **Microsoft YaHei UI** font that
+ships with the operating system (`%WINDIR%\Fonts\msyh.ttc`). This font is loaded
+at runtime and is **not** redistributed with this repository or its installers;
+it remains covered by the Microsoft Windows license terms.
 
 ## Other bundled components
 

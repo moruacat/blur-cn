@@ -20,9 +20,11 @@ Join the [Discord](https://discord.gg/B5BK9GMN87) to share your configs, render 
 
 ### 中文字体
 
-界面中的中文字形来自 **HarmonyOS Sans SC Medium**，随程序以未修改的原始文件形式分发（`resources/fonts/`）。字体许可证见 `resources/fonts/LICENSE.txt`，第三方声明见 `THIRD_PARTY_NOTICES.md`。
+界面优先使用 Windows 自带的 **Microsoft YaHei UI**（`%WINDIR%\Fonts\msyh.ttc`，即资源管理器、记事本和 ClassIsland 使用的那套字体）。它自带 hinting 指令，字形会吸附到像素网格上，所以小字号下笔画依然锐利。
 
-界面整体按 **1.3×** 缩放（正文 15 × 1.3 ≈ 19.5px，分组标题 20 × 1.3 ≈ 26px），窗口默认尺寸也从 591×381 放大到约 768×495。如果你觉得还大/还小，可以设置环境变量后重启程序，无需重新构建：
+在没有该字体的系统上（或非 Windows 平台），会回退到随程序分发的 **HarmonyOS Sans SC Medium**（`resources/fonts/`，未修改的原始文件）。字体许可证见 `resources/fonts/LICENSE.txt`，第三方声明见 `THIRD_PARTY_NOTICES.md`。
+
+界面整体按 **1.3×** 缩放（正文约 22px、分组标题约 29px，对应 17px 的雅黑 UI 字号），窗口默认尺寸也从 591×381 放大到约 768×495。如果你觉得还大/还小，可以设置环境变量后重启程序，无需重新构建：
 
 ```powershell
 $env:BLUR_UI_SCALE = "1.45"   # 允许范围 0.5 ~ 4，默认 1.3
