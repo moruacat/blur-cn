@@ -3,18 +3,18 @@
 #include "../keys.h"
 
 constexpr float SLIDER_ROUNDING = 4.0f;
-constexpr float HANDLE_WIDTH = 10;
-constexpr int TRACK_HEIGHT = 4;
-constexpr int LINE_HEIGHT_ADD = 7;
-constexpr int TRACK_LABEL_GAP = 10;
-constexpr int TOOLTIP_GAP = 4;
+const int HANDLE_WIDTH = render::ui_px(10);
+const int TRACK_HEIGHT = render::ui_px(4);
+const int LINE_HEIGHT_ADD = render::ui_px(7);
+const int TRACK_LABEL_GAP = render::ui_px(10);
+const int TOOLTIP_GAP = render::ui_px(4);
 const std::string TIED_ICON = "a"; // chain
-constexpr int TIED_ICON_GAP = 3;
-constexpr gfx::Size TIE_PAD(5, 3);
+const int TIED_ICON_GAP = render::ui_px(3);
+const gfx::Size TIE_PAD(render::ui_px(5), render::ui_px(3));
 constexpr float TIE_ROUNDING = 4.0f;
 
 // text input
-constexpr int TEXT_INPUT_GAP = 10;
+const int TEXT_INPUT_GAP = render::ui_px(10);
 
 constexpr gfx::Color TEXT_COLOR(255, 255, 255, 255);
 
@@ -499,7 +499,7 @@ ui::AnimatedElement* ui::add_slider(
 	float precision,
 	const std::string& tooltip
 ) {
-	gfx::Size slider_size(200, font.height() + TRACK_LABEL_GAP + TRACK_HEIGHT);
+	gfx::Size slider_size(render::ui_px(200), font.height() + TRACK_LABEL_GAP + TRACK_HEIGHT);
 	if (!tooltip.empty())
 		slider_size.h += LINE_HEIGHT_ADD + font.height();
 
@@ -548,7 +548,7 @@ ui::AnimatedElement* ui::add_slider_tied(
 	float precision,
 	const std::string& tooltip
 ) {
-	gfx::Size slider_size(200, font.height() + TRACK_LABEL_GAP + TRACK_HEIGHT);
+	gfx::Size slider_size(render::ui_px(200), font.height() + TRACK_LABEL_GAP + TRACK_HEIGHT);
 	if (!tooltip.empty())
 		slider_size.h += LINE_HEIGHT_ADD + font.height();
 

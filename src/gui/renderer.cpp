@@ -60,6 +60,13 @@ bool gui::renderer::redraw_window(bool rendered_last, bool want_to_render) {
 
 	const gfx::Rect rect(gfx::Point(0, 0), render::window_size);
 
+	// Everything below is written in unscaled units and multiplied by the global
+	// UI scale, so the interface (and its paddings) grows as one piece.
+	const float ui_scale = render::ui_scale();
+	const auto scale = [ui_scale](int value) {
+		return static_cast<int>((static_cast<float>(value) * ui_scale) + 0.5f);
+	};
+
 	static float bg_drop_overlay_percent = 0.f;
 	static float bg_last_percent = bg_drop_overlay_percent;
 	bg_drop_overlay_percent = u::lerp(bg_drop_overlay_percent, gui::dragging ? 1.f : 0.f, 25.f * delta_time);
@@ -67,29 +74,37 @@ bool gui::renderer::redraw_window(bool rendered_last, bool want_to_render) {
 	bg_last_percent = bg_drop_overlay_percent;
 
 	gfx::Rect nav_container_rect = rect;
-	nav_container_rect.h = 70;
+	nav_container_rect.h = scale(70);
 	nav_container_rect.y = rect.y2() - nav_container_rect.h;
 
 	ui::reset_container(nav_container, sdl::window, nav_container_rect, fonts::dejavu.height(), {});
 
 	int nav_cutoff = rect.y2() - nav_container_rect.y;
-	int bottom_pad = std::max(PAD_Y, nav_cutoff);
+	int bottom_pad = std::max(scale(PAD_Y), nav_cutoff);
 
-	const static int main_pad_x = std::min(100, render::window_size.w / 10); // bit of magic never hurt anyone
+	const int main_pad_x = std::min(scale(100), render::window_size.w / 10); // bit of magic never hurt anyone
 	ui::reset_container(
-		main_container, sdl::window, rect, 13, ui::Padding{ PAD_Y, main_pad_x, bottom_pad, main_pad_x }
+		main_container,
+		sdl::window,
+		rect,
+		scale(13),
+		ui::Padding{ scale(PAD_Y), main_pad_x, bottom_pad, main_pad_x }
 	);
 
-	const int config_page_container_gap = PAD_X / 2;
+	const int config_page_container_gap = scale(PAD_X) / 2;
 
 	gfx::Rect config_container_rect = rect;
 
 	if (components::configs::loaded_config) {
-		config_container_rect.w = 200 + PAD_X * 2;
+		config_container_rect.w = scale(200) + scale(PAD_X) * 2;
 	}
 
 	ui::reset_container(
-		config_container, sdl::window, config_container_rect, 9, ui::Padding{ PAD_Y, PAD_X, bottom_pad, PAD_X }
+		config_container,
+		sdl::window,
+		config_container_rect,
+		scale(9),
+		ui::Padding{ scale(PAD_Y), scale(PAD_X), bottom_pad, scale(PAD_X) }
 	);
 
 	gfx::Rect config_preview_container_rect = rect;
@@ -97,14 +112,14 @@ bool gui::renderer::redraw_window(bool rendered_last, bool want_to_render) {
 	config_preview_container_rect.w -= config_container_rect.w + config_page_container_gap;
 
 	gfx::Rect config_preview_header_container_rect = config_preview_container_rect;
-	config_preview_header_container_rect.h = 80;
+	config_preview_header_container_rect.h = scale(80);
 
 	ui::reset_container(
 		config_preview_header_container,
 		sdl::window,
 		config_preview_header_container_rect,
 		fonts::dejavu.height(),
-		ui::Padding{ PAD_Y, PAD_X }
+		ui::Padding{ scale(PAD_Y), scale(PAD_X) }
 	);
 
 	gfx::Rect config_preview_content_container_rect = config_preview_container_rect;
@@ -116,25 +131,25 @@ bool gui::renderer::redraw_window(bool rendered_last, bool want_to_render) {
 		sdl::window,
 		config_preview_content_container_rect,
 		fonts::dejavu.height(),
-		ui::Padding{ 0, PAD_X, bottom_pad, PAD_X }
+		ui::Padding{ 0, scale(PAD_X), bottom_pad, scale(PAD_X) }
 	);
 
 	ui::reset_container(
 		option_information_container,
 		sdl::window,
 		config_preview_container_rect,
-		9,
-		ui::Padding{ PAD_Y, PAD_X, bottom_pad, PAD_X }
+		scale(9),
+		ui::Padding{ scale(PAD_Y), scale(PAD_X), bottom_pad, scale(PAD_X) }
 	);
 
 	gfx::Rect notification_container_rect = rect;
-	notification_container_rect.w = 230;
-	notification_container_rect.x =
-		rect.x2() - notification_container_rect.w - components::notifications::NOTIFICATIONS_PAD_X;
-	notification_container_rect.h = 300;
-	notification_container_rect.y = components::notifications::NOTIFICATIONS_PAD_Y;
+	notification_container_rect.w = scale(230);
+	notification_container_rect.x = rect.x2() - notification_container_rect.w -
+	                                scale(components::notifications::NOTIFICATIONS_PAD_X);
+	notification_container_rect.h = scale(300);
+	notification_container_rect.y = scale(components::notifications::NOTIFICATIONS_PAD_Y);
 
-	ui::reset_container(notification_container, sdl::window, notification_container_rect, 6, {});
+	ui::reset_container(notification_container, sdl::window, notification_container_rect, scale(6), {});
 
 	switch (screen) {
 		case Screens::MAIN: {
@@ -278,7 +293,7 @@ bool gui::renderer::redraw_window(bool rendered_last, bool want_to_render) {
 
 #if DEBUG_RENDER
 		if (fps != -1.f) {
-			gfx::Point fps_pos(rect.x2() - PAD_X, rect.y + PAD_Y);
+			gfx::Point fps_pos(rect.x2() - scale(PAD_X), rect.y + scale(PAD_Y));
 			render::text(
 				fps_pos, gfx::Color(0, 255, 0, 255), std::format("{:.0f} fps", fps), fonts::dejavu, FONT_RIGHT_ALIGN
 			);

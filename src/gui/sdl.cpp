@@ -58,13 +58,20 @@ tl::expected<void, std::string> sdl::initialise() {
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
 	// create sdl window
-	window =
-		SDL_CreateWindow("Blur", 591, 381, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
+	const float ui_scale = render::ui_scale();
+	window = SDL_CreateWindow(
+		"Blur",
+		static_cast<int>(591 * ui_scale),
+		static_cast<int>(381 * ui_scale),
+		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY
+	);
 
 	if (!window)
 		return tl::unexpected("Failed to create SDL window");
 
-	SDL_SetWindowMinimumSize(window, 450, 250);
+	SDL_SetWindowMinimumSize(
+		window, static_cast<int>(450 * ui_scale), static_cast<int>(250 * ui_scale)
+	);
 
 	SDL_AddEventWatch(event_watcher, window);
 

@@ -95,6 +95,15 @@ namespace render {
 	bool init(SDL_Window* window, const SDL_GLContext& context);
 	void destroy();
 
+	// Global UI scale factor. Everything is laid out in unscaled units and the
+	// window, font sizes and paddings are multiplied by this, so the whole
+	// interface grows together. Overridable with BLUR_UI_SCALE (default 1.3),
+	// which makes the Chinese text comfortable to read.
+	float ui_scale();
+
+	// Converts a pixel value written in unscaled units to screen units.
+	int ui_px(int value);
+
 	void line(
 		const gfx::Point& pos1,
 		const gfx::Point& pos2,

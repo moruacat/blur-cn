@@ -3,9 +3,9 @@
 #include "../keys.h"
 #include "../helpers/text_input.h"
 
-constexpr int LABEL_GAP = 10;
+const int LABEL_GAP = render::ui_px(10);
 constexpr float TEXT_INPUT_ROUNDING = 2.5f;
-constexpr gfx::Size TEXT_INPUT_PADDING(10, 5);
+const gfx::Size TEXT_INPUT_PADDING(render::ui_px(10), render::ui_px(5));
 constexpr gfx::Color BORDER_COLOR(70, 70, 70, 255);
 constexpr gfx::Color ACTIVE_BORDER_COLOR(90, 90, 90, 255);
 constexpr gfx::Color BG_COLOR(20, 20, 20, 200);
@@ -179,7 +179,7 @@ ui::AnimatedElement* ui::add_text_input(
 
 	helpers::text_input::add_text_edit(id, state);
 
-	const gfx::Size input_size(200, font.height() + (TEXT_INPUT_PADDING.h * 2));
+	const gfx::Size input_size(render::ui_px(200), font.height() + (TEXT_INPUT_PADDING.h * 2));
 
 	Element element(
 		id,

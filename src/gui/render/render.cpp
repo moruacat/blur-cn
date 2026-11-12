@@ -155,16 +155,11 @@ bool render::init(SDL_Window* window, const SDL_GLContext& context) {
 		}
 	}
 
-	// Chinese glyphs need a couple more pixels than latin ones to stay legible,
-	// so the UI font starts at 15px instead of the latin 13px. The scale can be
-	// overridden at runtime with BLUR_UI_FONT_SCALE for people on large displays.
-	float ui_font_scale = 1.f;
-	if (const char* env_scale = std::getenv("BLUR_UI_FONT_SCALE")) {
-		const float parsed = std::strtof(env_scale, nullptr);
-		if (parsed >= 0.5f && parsed <= 4.f)
-			ui_font_scale = parsed;
-	}
-
+	// Sizes are in unscaled units; ui_scale() grows the whole interface (fonts,
+	// paddings, window) together so the layout keeps its proportions. Chinese
+	// glyphs also need a couple more pixels than latin ones to stay legible, so
+	// the body font starts at 15 instead of the latin 13.
+	const float ui_font_scale = ui_scale();
 	const float body_font_size = 15.f * ui_font_scale;
 	const float smaller_header_font_size = 20.f * ui_font_scale;
 
@@ -197,7 +192,7 @@ bool render::init(SDL_Window* window, const SDL_GLContext& context) {
 			return false;
 	}
 
-	if (!fonts::header_font.init(EB_GARAMOND_COMPRESSED_DATA, 30.f, &font_cfg, ranges))
+	if (!fonts::header_font.init(EB_GARAMOND_COMPRESSED_DATA, 30.f * ui_font_scale, &font_cfg, ranges))
 		return false;
 
 	if (!fonts::icons.init(ICONS_COMPRESSED_DATA, 15.f * ui_font_scale, &font_cfg, ranges))
@@ -210,6 +205,30 @@ void render::destroy() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplSDL3_Shutdown();
 	ImGui::DestroyContext();
+}
+
+float render::ui_scale() {
+	static const float scale = [] {
+		float result = 1.3f;
+
+		const char* env_scale = std::getenv("BLUR_UI_SCALE");
+		if (!env_scale)
+			env_scale = std::getenv("BLUR_UI_FONT_SCALE");
+
+		if (env_scale) {
+			const float parsed = std::strtof(env_scale, nullptr);
+			if (parsed >= 0.5f && parsed <= 4.f)
+				result = parsed;
+		}
+
+		return result;
+	}();
+
+	return scale;
+}
+
+int render::ui_px(int value) {
+	return static_cast<int>((static_cast<float>(value) * ui_scale()) + 0.5f);
 }
 
 void render::update_window_size(SDL_Window* window) {

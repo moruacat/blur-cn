@@ -3,8 +3,8 @@
 
 #include "../keys.h"
 
-const gfx::Size TAB_PADDING = { 10, 7 };
-const float TAB_ROUNDING = 5.f;
+const gfx::Size TAB_PADDING = { render::ui_px(10), render::ui_px(7) };
+const float TAB_ROUNDING = 5.f * render::ui_scale();
 
 namespace {
 	void update_background(ui::AnimatedElement& element) {

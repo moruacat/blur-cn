@@ -4,8 +4,8 @@
 #include "../../render/render.h"
 
 constexpr float GRAPH_ASPECT_RATIO = 16.f / 9.f;
-constexpr gfx::Size GRAPH_SIZE = gfx::Size(300, (300 * (1 / GRAPH_ASPECT_RATIO)));
-constexpr int LABEL_PADDING = 5;
+const gfx::Size GRAPH_SIZE = gfx::Size(render::ui_px(300), (render::ui_px(300) * (1 / GRAPH_ASPECT_RATIO)));
+const int LABEL_PADDING = render::ui_px(5);
 
 constexpr float POINT_ANIMATION_SPEED = 25.f;
 

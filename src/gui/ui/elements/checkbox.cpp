@@ -3,8 +3,8 @@
 #include "../keys.h"
 
 const float CHECKBOX_ROUNDING = 1.0f;
-const int CHECKBOX_SIZE = 7;
-const int LABEL_GAP = 5;
+const int CHECKBOX_SIZE = render::ui_px(7);
+const int LABEL_GAP = render::ui_px(5);
 
 void ui::render_checkbox(const Container& container, const AnimatedElement& element) {
 	const auto& checkbox_data = std::get<CheckboxElementData>(element.element->data);
@@ -82,7 +82,7 @@ ui::AnimatedElement* ui::add_checkbox(
 	const render::Font& font,
 	std::optional<std::function<void(bool)>> on_change
 ) {
-	gfx::Size total_size(200, std::max(CHECKBOX_SIZE, font.height()));
+	gfx::Size total_size(render::ui_px(200), std::max(CHECKBOX_SIZE, font.height()));
 
 	Element element(
 		id,

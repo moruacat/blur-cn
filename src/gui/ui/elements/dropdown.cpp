@@ -3,15 +3,15 @@
 
 #include "../keys.h"
 
-const float DROPDOWN_ROUNDING = 5.f;
-const gfx::Size DROPDOWN_PADDING(10, 5);
-const float OPTION_LINE_HEIGHT_ADD = 11;
-const int LABEL_GAP = 10;
-const int OPTIONS_GAP = 3;
-const gfx::Size OPTIONS_PADDING(10, 3);
+const float DROPDOWN_ROUNDING = 5.f * render::ui_scale();
+const gfx::Size DROPDOWN_PADDING(render::ui_px(10), render::ui_px(5));
+const float OPTION_LINE_HEIGHT_ADD = render::ui_px(11);
+const int LABEL_GAP = render::ui_px(10);
+const int OPTIONS_GAP = render::ui_px(3);
+const gfx::Size OPTIONS_PADDING(render::ui_px(10), render::ui_px(3));
 // const float DROPDOWN_ARROW_SIZE = 10.0f;
 const std::string DROPDOWN_ARROW_ICON = "b";
-const int DROPDOWN_ARROW_PAD = 2;
+const int DROPDOWN_ARROW_PAD = render::ui_px(2);
 
 namespace {
 	struct Positions {
@@ -323,7 +323,7 @@ ui::AnimatedElement* ui::add_dropdown(
 	// 	max_text_size.w = std::max(max_text_size.w, text_size.w);
 	// }
 
-	gfx::Size total_size(200, font.height() + LABEL_GAP + font.height() + (DROPDOWN_PADDING.h * 2));
+	gfx::Size total_size(render::ui_px(200), font.height() + LABEL_GAP + font.height() + (DROPDOWN_PADDING.h * 2));
 
 	Element element(
 		id,

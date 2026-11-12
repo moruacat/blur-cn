@@ -78,7 +78,7 @@ void main::render_screen(
 		return;
 
 	auto render_status = render.get_status();
-	int bar_width = 300;
+	int bar_width = render::ui_px(300);
 
 	std::string preview_path = render.get_preview_path().string();
 	if (!preview_path.empty() && render_status.current_frame > 0) {
@@ -209,10 +209,10 @@ void main::home_screen(ui::Container& container, float delta_time) {
 		bar_percent = 0.f;
 
 		gfx::Point title_pos = container.get_usable_rect().center();
-		if (container.rect.h > 275)
-			title_pos.y = int(renderer::PAD_Y + fonts::header_font.height());
+		if (container.rect.h > (275 * render::ui_scale()))
+			title_pos.y = int((renderer::PAD_Y * render::ui_scale()) + fonts::header_font.height());
 		else
-			title_pos.y = 10 + fonts::header_font.height();
+			title_pos.y = int((10 * render::ui_scale()) + fonts::header_font.height());
 
 		ui::add_text_fixed(
 			"blur title text", container, title_pos, "blur", gfx::Color::white(), fonts::header_font, FONT_CENTERED_X

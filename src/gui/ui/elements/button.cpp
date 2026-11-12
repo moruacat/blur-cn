@@ -3,8 +3,8 @@
 
 #include "../keys.h"
 
-const gfx::Size BUTTON_PADDING = { 14, 9 };
-constexpr float BUTTON_ROUNDING = 7.f;
+const gfx::Size BUTTON_PADDING = { render::ui_px(14), render::ui_px(9) };
+const float BUTTON_ROUNDING = 7.f * render::ui_scale();
 
 void ui::render_button(const Container& container, const AnimatedElement& element) {
 	const auto& button_data = std::get<ButtonElementData>(element.element->data);
