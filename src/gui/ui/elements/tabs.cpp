@@ -3,8 +3,15 @@
 
 #include "../keys.h"
 
-const gfx::Size TAB_PADDING = { render::ui_px(10), render::ui_px(7) };
-const float TAB_ROUNDING = 5.f * render::ui_scale();
+namespace {
+	gfx::Size tab_padding() {
+		return { render::ui_px(10), render::ui_px(7) };
+	}
+
+	float tab_rounding() {
+		return 5.f * render::ui_scale();
+	}
+}
 
 namespace {
 	void update_background(ui::AnimatedElement& element) {
@@ -49,7 +56,7 @@ void ui::render_tabs(const Container& container, const AnimatedElement& element)
 	auto background_rect =
 		gfx::Rect(selected_offset, 0, selected_width, element.element->rect.h) + element.element->rect.origin();
 
-	render::rounded_rect_filled(background_rect, gfx::Color::white(anim * 255), TAB_ROUNDING);
+	render::rounded_rect_filled(background_rect, gfx::Color::white(anim * 255), tab_rounding());
 
 	render::push_clip_rect(background_rect);
 
@@ -68,7 +75,7 @@ void ui::render_tabs(const Container& container, const AnimatedElement& element)
 
 	render::pop_clip_rect();
 
-	render::rounded_rect_stroke(element.element->rect, gfx::Color(100, 100, 100, anim * 255), TAB_ROUNDING);
+	render::rounded_rect_stroke(element.element->rect, gfx::Color(100, 100, 100, anim * 255), tab_rounding());
 }
 
 bool ui::update_tabs(const Container& container, AnimatedElement& element) {
@@ -111,7 +118,7 @@ ui::AnimatedElement* ui::add_tabs(
 	const render::Font& font,
 	std::optional<std::function<void()>> on_select
 ) {
-	gfx::Rect rect(container.current_position, gfx::Size(0, font.height() + (TAB_PADDING.h * 2)));
+	gfx::Rect rect(container.current_position, gfx::Size(0, font.height() + (tab_padding().h * 2)));
 	std::vector<gfx::Rect> option_offset_rects;
 
 	gfx::Rect selected_offset_rect;
@@ -121,7 +128,7 @@ ui::AnimatedElement* ui::add_tabs(
 
 		gfx::Size text_size = font.calc_size(option);
 
-		gfx::Rect option_rect = { 0, 0, text_size.w + (TAB_PADDING.w * 2), rect.h };
+		gfx::Rect option_rect = { 0, 0, text_size.w + (tab_padding().w * 2), rect.h };
 		if (i > 0)
 			option_rect.x = option_offset_rects.back().x2();
 

@@ -19,6 +19,17 @@ tl::expected<void, std::string> sdl::initialise() {
 	if (!SDL_Init(SDL_INIT_VIDEO))
 		return tl::unexpected("SDL initialization failed");
 
+	// Windows reports window sizes in physical pixels, so an application that
+	// does not scale its own UI looks smaller than every DPI aware app (Explorer,
+	// ClassIsland, ...) on a 125%/150% display. SDL gives us the effective OS
+	// scale of the primary display; multiply it into the UI scale so both the
+	// font sizes and the layout grow with the display settings.
+	{
+		const float content_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+		if (content_scale > 0.f)
+			render::set_display_scale(content_scale);
+	}
+
 	// Initialise notification system
 	auto config = config_app::get_app_config();
 	if (config.render_success_notifications || config.render_failure_notifications) {

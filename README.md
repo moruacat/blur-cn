@@ -24,10 +24,12 @@ Join the [Discord](https://discord.gg/B5BK9GMN87) to share your configs, render 
 
 在没有该字体的系统上（或非 Windows 平台），会回退到随程序分发的 **HarmonyOS Sans SC Medium**（`resources/fonts/`，未修改的原始文件）。字体许可证见 `resources/fonts/LICENSE.txt`，第三方声明见 `THIRD_PARTY_NOTICES.md`。
 
-界面整体按 **1.3×** 缩放（正文约 22px、分组标题约 29px，对应 17px 的雅黑 UI 字号），窗口默认尺寸也从 591×381 放大到约 768×495。如果你觉得还大/还小，可以设置环境变量后重启程序，无需重新构建：
+界面整体按 **1.3×** 缩放（正文约 22px、分组标题约 29px，对应 17px 的雅黑 UI 字号），窗口默认尺寸也从 591×381 放大到约 768×495。
+
+程序还会自动乘以系统的显示缩放比例（Windows 设置里的 100% / 125% / 150%），因此在高 DPI 屏幕上界面不会比资源管理器等系统程序小一圈。如果你觉得还大/还小，可以设置环境变量后重启程序，无需重新构建（该值是基础倍数，系统显示缩放仍会叠加在其上）：
 
 ```powershell
-$env:BLUR_UI_SCALE = "1.45"   # 允许范围 0.5 ~ 4，默认 1.3
+$env:BLUR_UI_SCALE = "1.45"   # 基础倍数，允许范围 0.5 ~ 4，默认 1.3
 .\blur-Windows-Release-x64.exe
 ```
 

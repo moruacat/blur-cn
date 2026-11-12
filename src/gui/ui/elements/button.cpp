@@ -3,8 +3,17 @@
 
 #include "../keys.h"
 
-const gfx::Size BUTTON_PADDING = { render::ui_px(14), render::ui_px(9) };
-const float BUTTON_ROUNDING = 7.f * render::ui_scale();
+// Sizes are computed on demand: they depend on the UI scale, which is only known
+// after the OS display scale has been queried during startup.
+namespace {
+	gfx::Size button_padding() {
+		return { render::ui_px(14), render::ui_px(9) };
+	}
+
+	float button_rounding() {
+		return 7.f * render::ui_scale();
+	}
+}
 
 void ui::render_button(const Container& container, const AnimatedElement& element) {
 	const auto& button_data = std::get<ButtonElementData>(element.element->data);
@@ -16,10 +25,10 @@ void ui::render_button(const Container& container, const AnimatedElement& elemen
 	gfx::Color adjusted_text_color = gfx::Color(255, 255, 255, anim * 255);
 
 	// fill
-	render::rounded_rect_filled(element.element->rect, adjusted_color, BUTTON_ROUNDING);
+	render::rounded_rect_filled(element.element->rect, adjusted_color, button_rounding());
 
 	// border
-	render::rounded_rect_stroke(element.element->rect, gfx::Color(100, 100, 100, anim * 255), BUTTON_ROUNDING);
+	render::rounded_rect_stroke(element.element->rect, gfx::Color(100, 100, 100, anim * 255), button_rounding());
 
 	render::text(
 		element.element->rect.center(),
@@ -65,7 +74,7 @@ ui::AnimatedElement* ui::add_button(
 
 	gfx::Rect rect(
 		container.current_position,
-		gfx::Size(text_size.w + (BUTTON_PADDING.w * 2), font.height() + (BUTTON_PADDING.h * 2))
+		gfx::Size(text_size.w + (button_padding().w * 2), font.height() + (button_padding().h * 2))
 	);
 
 	Element element(

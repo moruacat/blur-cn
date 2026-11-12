@@ -219,7 +219,7 @@ bool render::init(SDL_Window* window, const SDL_GLContext& context) {
 
 	// ImGui always rasterises grayscale antialiasing, which reads thinner than
 	// the ClearType-style rendering Windows apps use, so nudge coverage up.
-	cjk_font_cfg.RasterizerMultiply = 1.08f;
+	cjk_font_cfg.RasterizerMultiply = 1.2f;
 
 	if (!cjk_font.native_hinting) {
 		// HarmonyOS Sans has no hinting instructions of its own, so ask FreeType
@@ -232,7 +232,7 @@ bool render::init(SDL_Window* window, const SDL_GLContext& context) {
 	if (!cjk_font.path.empty()) {
 		u::log(
 			"ui: using CJK font '{}' face {} at {}px (heading {}px), window {}x{}, framebuffer {}x{}, scale {:.2f}, "
-			"ui scale {:.2f}",
+			"display scale {:.2f}, ui scale {:.2f}",
 			cjk_font.path.filename().string(),
 			cjk_font.face_index,
 			body_font_size,
@@ -242,6 +242,7 @@ bool render::init(SDL_Window* window, const SDL_GLContext& context) {
 			pixel_w,
 			pixel_h,
 			framebuffer_scale,
+			display_scale(),
 			ui_font_scale
 		);
 
@@ -281,7 +282,24 @@ void render::destroy() {
 	ImGui::DestroyContext();
 }
 
+namespace {
+	float g_display_scale = 1.f;
+}
+
+void render::set_display_scale(float scale) {
+	if (scale >= 0.5f && scale <= 4.f)
+		g_display_scale = scale;
+}
+
+float render::display_scale() {
+	return g_display_scale;
+}
+
 float render::ui_scale() {
+	// The static is initialised on the first call, and sdl::initialise() calls
+	// set_display_scale() before it creates the window, so the DPI factor is
+	// already known here. The environment variable overrides the base factor
+	// only; the OS scale is always applied on top of it.
 	static const float scale = [] {
 		float result = 1.3f;
 
@@ -295,7 +313,7 @@ float render::ui_scale() {
 				result = parsed;
 		}
 
-		return result;
+		return result * g_display_scale;
 	}();
 
 	return scale;

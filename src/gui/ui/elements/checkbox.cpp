@@ -3,8 +3,16 @@
 #include "../keys.h"
 
 const float CHECKBOX_ROUNDING = 1.0f;
-const int CHECKBOX_SIZE = render::ui_px(7);
-const int LABEL_GAP = render::ui_px(5);
+
+namespace {
+	int checkbox_size() {
+		return render::ui_px(7);
+	}
+
+	int label_gap() {
+		return render::ui_px(5);
+	}
+}
 
 void ui::render_checkbox(const Container& container, const AnimatedElement& element) {
 	const auto& checkbox_data = std::get<CheckboxElementData>(element.element->data);
@@ -26,9 +34,9 @@ void ui::render_checkbox(const Container& container, const AnimatedElement& elem
 
 	// Calculate checkbox rect (centered vertically with text)
 	gfx::Rect checkbox_rect = element.element->rect;
-	checkbox_rect.w = CHECKBOX_SIZE;
-	checkbox_rect.h = CHECKBOX_SIZE;
-	checkbox_rect.y += (element.element->rect.h - CHECKBOX_SIZE) / 2;
+	checkbox_rect.w = checkbox_size();
+	checkbox_rect.h = checkbox_size();
+	checkbox_rect.y += (element.element->rect.h - checkbox_size()) / 2;
 
 	// checkbox
 	render::rect_filled(checkbox_rect, bg_color);
@@ -39,7 +47,7 @@ void ui::render_checkbox(const Container& container, const AnimatedElement& elem
 
 	// Render label text
 	gfx::Point text_pos = element.element->rect.origin();
-	text_pos.x += CHECKBOX_SIZE + LABEL_GAP;
+	text_pos.x += checkbox_size() + label_gap();
 	text_pos.y = element.element->rect.center().y;
 
 	render::text(text_pos, gfx::Color::white(anim * 255), checkbox_data.label, *checkbox_data.font, FONT_CENTERED_Y);
@@ -82,7 +90,7 @@ ui::AnimatedElement* ui::add_checkbox(
 	const render::Font& font,
 	std::optional<std::function<void(bool)>> on_change
 ) {
-	gfx::Size total_size(render::ui_px(200), std::max(CHECKBOX_SIZE, font.height()));
+	gfx::Size total_size(render::ui_px(200), std::max(checkbox_size(), font.height()));
 
 	Element element(
 		id,

@@ -3,15 +3,37 @@
 
 #include "../keys.h"
 
-const float DROPDOWN_ROUNDING = 5.f * render::ui_scale();
-const gfx::Size DROPDOWN_PADDING(render::ui_px(10), render::ui_px(5));
-const float OPTION_LINE_HEIGHT_ADD = render::ui_px(11);
-const int LABEL_GAP = render::ui_px(10);
-const int OPTIONS_GAP = render::ui_px(3);
-const gfx::Size OPTIONS_PADDING(render::ui_px(10), render::ui_px(3));
-// const float DROPDOWN_ARROW_SIZE = 10.0f;
 const std::string DROPDOWN_ARROW_ICON = "b";
-const int DROPDOWN_ARROW_PAD = render::ui_px(2);
+
+namespace {
+	float dropdown_rounding() {
+		return 5.f * render::ui_scale();
+	}
+
+	gfx::Size dropdown_padding() {
+		return { render::ui_px(10), render::ui_px(5) };
+	}
+
+	float option_line_height_add() {
+		return static_cast<float>(render::ui_px(11));
+	}
+
+	int label_gap() {
+		return render::ui_px(10);
+	}
+
+	int options_gap() {
+		return render::ui_px(3);
+	}
+
+	gfx::Size options_padding() {
+		return { render::ui_px(10), render::ui_px(3) };
+	}
+
+	int arrow_pad() {
+		return render::ui_px(2);
+	}
+}
 
 namespace {
 	struct Positions {
@@ -31,25 +53,25 @@ namespace {
 		gfx::Point label_pos = element.element->rect.origin();
 
 		gfx::Rect dropdown_rect = element.element->rect;
-		dropdown_rect.y = label_pos.y + dropdown_data.font->height() + LABEL_GAP;
+		dropdown_rect.y = label_pos.y + dropdown_data.font->height() + label_gap();
 		dropdown_rect.h -= dropdown_rect.y - element.element->rect.y;
 
 		gfx::Point selected_text_pos = dropdown_rect.origin();
-		selected_text_pos.x += DROPDOWN_PADDING.w;
+		selected_text_pos.x += dropdown_padding().w;
 		selected_text_pos.y = dropdown_rect.center().y;
 
-		float option_line_height = dropdown_data.font->height() + OPTION_LINE_HEIGHT_ADD;
+		float option_line_height = dropdown_data.font->height() + option_line_height_add();
 
 		gfx::Rect options_rect = element.element->rect;
-		options_rect.y = options_rect.y2() + OPTIONS_GAP;
-		options_rect.h = option_line_height * dropdown_data.options.size() + OPTIONS_PADDING.h * 2;
+		options_rect.y = options_rect.y2() + options_gap();
+		options_rect.h = option_line_height * dropdown_data.options.size() + options_padding().h * 2;
 
-		if (options_rect.y + options_rect.h + OPTIONS_GAP > container.get_usable_rect().y2() &&
-		    options_rect.y - options_rect.h - OPTIONS_GAP > 0)
+		if (options_rect.y + options_rect.h + options_gap() > container.get_usable_rect().y2() &&
+		    options_rect.y - options_rect.h - options_gap() > 0)
 		{
 			// open upwards
 			options_rect.h *= anim;
-			options_rect.y = dropdown_rect.y - options_rect.h - OPTIONS_GAP;
+			options_rect.y = dropdown_rect.y - options_rect.h - options_gap();
 		}
 		else {
 			options_rect.h *= anim;
@@ -108,15 +130,15 @@ void ui::render_dropdown(const Container& container, const AnimatedElement& elem
 	render::text(pos.label_pos, text_color, dropdown_data.label, *dropdown_data.font);
 
 	// Render dropdown main area
-	render::rounded_rect_filled(pos.dropdown_rect, adjusted_color, DROPDOWN_ROUNDING);
-	render::rounded_rect_stroke(pos.dropdown_rect, border_color, DROPDOWN_ROUNDING);
+	render::rounded_rect_filled(pos.dropdown_rect, adjusted_color, dropdown_rounding());
+	render::rounded_rect_stroke(pos.dropdown_rect, border_color, dropdown_rounding());
 
 	// Get currently selected option text
 	render::text(pos.selected_text_pos, text_color, *dropdown_data.selected, *dropdown_data.font, FONT_CENTERED_Y);
 
 	// Render dropdown arrow
 	gfx::Point arrow_pos(
-		pos.dropdown_rect.x2() - DROPDOWN_PADDING.w - DROPDOWN_ARROW_PAD, pos.dropdown_rect.center().y
+		pos.dropdown_rect.x2() - dropdown_padding().w - arrow_pad(), pos.dropdown_rect.center().y
 	);
 
 	// const float arrow_length = 4.8f;
@@ -152,16 +174,16 @@ void ui::render_dropdown(const Container& container, const AnimatedElement& elem
 		gfx::Color option_border_color(border_shade, border_shade, border_shade, anim * 255);
 
 		render::late_draw_calls.emplace_back([pos, option_color, option_border_color] {
-			render::rounded_rect_filled(pos.options_rect, option_color, DROPDOWN_ROUNDING);
-			render::rounded_rect_stroke(pos.options_rect, option_border_color, DROPDOWN_ROUNDING);
+			render::rounded_rect_filled(pos.options_rect, option_color, dropdown_rounding());
+			render::rounded_rect_stroke(pos.options_rect, option_border_color, dropdown_rounding());
 
 			render::push_clip_rect(pos.options_rect);
 		});
 
 		// Render options
 		gfx::Point option_text_pos = pos.options_rect.origin();
-		option_text_pos.y += OPTIONS_PADDING.h + OPTION_LINE_HEIGHT_ADD / 2 - 1;
-		option_text_pos.x = pos.options_rect.origin().x + OPTIONS_PADDING.w;
+		option_text_pos.y += options_padding().h + option_line_height_add() / 2 - 1;
+		option_text_pos.x = pos.options_rect.origin().x + options_padding().w;
 
 		for (size_t i = 0; i < dropdown_data.options.size(); i++) {
 			const auto& option = dropdown_data.options[i];
@@ -233,7 +255,7 @@ bool ui::update_dropdown(const Container& container, AnimatedElement& element) {
 			set_cursor(SDL_SYSTEM_CURSOR_POINTER);
 
 			// Calculate which option is being hovered
-			int y_offset = keys::mouse_pos.y - pos.options_rect.y - OPTIONS_PADDING.h;
+			int y_offset = keys::mouse_pos.y - pos.options_rect.y - options_padding().h;
 			size_t hovered_option_index = -1;
 
 			if (y_offset >= 0) {
@@ -264,7 +286,7 @@ bool ui::update_dropdown(const Container& container, AnimatedElement& element) {
 		if (keys::is_mouse_down()) {
 			if (pos.options_rect.contains(keys::mouse_pos)) {
 				size_t clicked_option_index =
-					(keys::mouse_pos.y - pos.options_rect.y - OPTIONS_PADDING.h) / pos.option_line_height;
+					(keys::mouse_pos.y - pos.options_rect.y - options_padding().h) / pos.option_line_height;
 
 				// eat all inputs cause otherwise itll click stuff behind
 				keys::on_mouse_press_handled(SDL_BUTTON_LEFT);
@@ -323,7 +345,7 @@ ui::AnimatedElement* ui::add_dropdown(
 	// 	max_text_size.w = std::max(max_text_size.w, text_size.w);
 	// }
 
-	gfx::Size total_size(render::ui_px(200), font.height() + LABEL_GAP + font.height() + (DROPDOWN_PADDING.h * 2));
+	gfx::Size total_size(render::ui_px(200), font.height() + label_gap() + font.height() + (dropdown_padding().h * 2));
 
 	Element element(
 		id,

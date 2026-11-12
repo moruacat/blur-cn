@@ -4,8 +4,19 @@
 #include "../../render/render.h"
 
 constexpr float GRAPH_ASPECT_RATIO = 16.f / 9.f;
-const gfx::Size GRAPH_SIZE = gfx::Size(render::ui_px(300), (render::ui_px(300) * (1 / GRAPH_ASPECT_RATIO)));
-const int LABEL_PADDING = render::ui_px(5);
+
+namespace {
+	// Computed on demand: they depend on the UI scale, which is only known after
+	// the OS display scale has been queried during startup.
+	gfx::Size graph_size() {
+		const int width = render::ui_px(300);
+		return gfx::Size(width, static_cast<int>(width * (1 / GRAPH_ASPECT_RATIO)));
+	}
+
+	int label_padding() {
+		return render::ui_px(5);
+	}
+}
 
 constexpr float POINT_ANIMATION_SPEED = 25.f;
 
@@ -127,7 +138,7 @@ void ui::render_weighting_graph(const Container& container, const AnimatedElemen
 
 	gfx::Color label_color(180, 180, 180, anim * 255);
 
-	auto label_rect = rect.shrink(LABEL_PADDING);
+	auto label_rect = rect.shrink(label_padding());
 
 	// render::text(
 	// 	graph_rect.top_left().offset_y(-LABEL_PADDING), label_color, "previous", fonts::dejavu, FONT_BOTTOM_ALIGN
@@ -163,7 +174,7 @@ ui::AnimatedElement* ui::add_weighting_graph(
 		id,
 		ElementType::WEIGHTING_GRAPH,
 		gfx::Rect(
-			container.current_position, gfx::Size{ std::min(GRAPH_SIZE.w, container.get_usable_rect().w), GRAPH_SIZE.h }
+			container.current_position, gfx::Size{ std::min(graph_size().w, container.get_usable_rect().w), graph_size().h }
 		),
 		WeightingGraphElementData{
 			.weights = weights,

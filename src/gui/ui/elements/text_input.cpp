@@ -3,9 +3,17 @@
 #include "../keys.h"
 #include "../helpers/text_input.h"
 
-const int LABEL_GAP = render::ui_px(10);
 constexpr float TEXT_INPUT_ROUNDING = 2.5f;
-const gfx::Size TEXT_INPUT_PADDING(render::ui_px(10), render::ui_px(5));
+
+namespace {
+	int label_gap() {
+		return render::ui_px(10);
+	}
+
+	gfx::Size text_input_padding() {
+		return { render::ui_px(10), render::ui_px(5) };
+	}
+}
 constexpr gfx::Color BORDER_COLOR(70, 70, 70, 255);
 constexpr gfx::Color ACTIVE_BORDER_COLOR(90, 90, 90, 255);
 constexpr gfx::Color BG_COLOR(20, 20, 20, 200);
@@ -29,7 +37,7 @@ namespace {
 		gfx::Point label_pos = element.element->rect.origin();
 		auto input_rect = element.element->rect;
 		// Assuming element rect is the input field directly
-		gfx::Point text_pos(input_rect.x + TEXT_INPUT_PADDING.w, input_rect.y + TEXT_INPUT_PADDING.h);
+		gfx::Point text_pos(input_rect.x + text_input_padding().w, input_rect.y + text_input_padding().h);
 
 		return {
 			.label_pos = label_pos,
@@ -59,10 +67,10 @@ void ui::render_text_input(const Container& container, const AnimatedElement& el
 
 	// --- Clipping ---
 	gfx::Rect clip_rect = pos.input_rect;
-	clip_rect.x += TEXT_INPUT_PADDING.w;
-	clip_rect.y += TEXT_INPUT_PADDING.h;
-	clip_rect.w -= TEXT_INPUT_PADDING.w * 2;
-	clip_rect.h -= TEXT_INPUT_PADDING.h * 2;
+	clip_rect.x += text_input_padding().w;
+	clip_rect.y += text_input_padding().h;
+	clip_rect.w -= text_input_padding().w * 2;
+	clip_rect.h -= text_input_padding().h * 2;
 	clip_rect.w = std::max(clip_rect.w, 0);
 	clip_rect.h = std::max(clip_rect.h, 0);
 
@@ -179,7 +187,7 @@ ui::AnimatedElement* ui::add_text_input(
 
 	helpers::text_input::add_text_edit(id, state);
 
-	const gfx::Size input_size(render::ui_px(200), font.height() + (TEXT_INPUT_PADDING.h * 2));
+	const gfx::Size input_size(render::ui_px(200), font.height() + (text_input_padding().h * 2));
 
 	Element element(
 		id,

@@ -101,6 +101,12 @@ namespace render {
 	// which makes the Chinese text comfortable to read.
 	float ui_scale();
 
+	// OS DPI scale (1.0 at 100%, 1.5 at 150%). Windows works in physical pixels,
+	// so the UI has to apply the display scale itself, otherwise it looks smaller
+	// than every other (DPI aware) application on the same screen.
+	void set_display_scale(float scale);
+	float display_scale();
+
 	// Converts a pixel value written in unscaled units to screen units.
 	int ui_px(int value);
 

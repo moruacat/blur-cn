@@ -3,18 +3,43 @@
 #include "../keys.h"
 
 constexpr float SLIDER_ROUNDING = 4.0f;
-const int HANDLE_WIDTH = render::ui_px(10);
-const int TRACK_HEIGHT = render::ui_px(4);
-const int LINE_HEIGHT_ADD = render::ui_px(7);
-const int TRACK_LABEL_GAP = render::ui_px(10);
-const int TOOLTIP_GAP = render::ui_px(4);
 const std::string TIED_ICON = "a"; // chain
-const int TIED_ICON_GAP = render::ui_px(3);
-const gfx::Size TIE_PAD(render::ui_px(5), render::ui_px(3));
 constexpr float TIE_ROUNDING = 4.0f;
 
-// text input
-const int TEXT_INPUT_GAP = render::ui_px(10);
+namespace {
+	int handle_width() {
+		return render::ui_px(10);
+	}
+
+	int track_height() {
+		return render::ui_px(4);
+	}
+
+	int line_height_add() {
+		return render::ui_px(7);
+	}
+
+	int track_label_gap() {
+		return render::ui_px(10);
+	}
+
+	int tooltip_gap() {
+		return render::ui_px(4);
+	}
+
+	int tied_icon_gap() {
+		return render::ui_px(3);
+	}
+
+	gfx::Size tie_pad() {
+		return { render::ui_px(5), render::ui_px(3) };
+	}
+
+	// text input
+	int text_input_gap() {
+		return render::ui_px(10);
+	}
+}
 
 constexpr gfx::Color TEXT_COLOR(255, 255, 255, 255);
 
@@ -39,7 +64,7 @@ namespace {
 		int line_height = slider_data.font->height();
 
 		gfx::Rect track_rect = element.element->rect;
-		track_rect.h = TRACK_HEIGHT;
+		track_rect.h = track_height();
 
 		gfx::Point label_pos = track_rect.origin();
 		gfx::Rect label_rect(label_pos, gfx::Size(track_rect.w, line_height));
@@ -57,31 +82,31 @@ namespace {
 			const int tie_text_height = std::max(slider_data.font->height(), fonts::icons.height());
 
 			gfx::Size tied_size(
-				icon_size + (slider_data.tied_text.empty() ? 0 : TIED_ICON_GAP + text_size) // no gap if empty text
-					+ (TIE_PAD.w * 2),
-				tie_text_height + (TIE_PAD.h * 2)
+				icon_size + (slider_data.tied_text.empty() ? 0 : tied_icon_gap() + text_size) // no gap if empty text
+					+ (tie_pad().w * 2),
+				tie_text_height + (tie_pad().h * 2)
 			);
 
 			tied_icon_rect = gfx::Rect(track_rect.top_right() - gfx::Point(tied_size.w, 0), tied_size);
 			tied_icon_rect.y -= tied_icon_rect.h / 2;
 			tied_icon_rect.y += line_height / 2;
 
-			tied_icon_pos = tied_icon_rect.top_left() + gfx::Point(TIE_PAD.w, TIE_PAD.h);
-			tied_text_pos = tied_icon_pos + gfx::Point(icon_size + TIED_ICON_GAP, 0);
+			tied_icon_pos = tied_icon_rect.top_left() + gfx::Point(tie_pad().w, tie_pad().h);
+			tied_text_pos = tied_icon_pos + gfx::Point(icon_size + tied_icon_gap(), 0);
 
 			// line_height = std::max(line_height, tied_icon_rect.h);
 
-			label_rect.w = tied_icon_rect.x - label_rect.x - TEXT_INPUT_GAP;
+			label_rect.w = tied_icon_rect.x - label_rect.x - text_input_gap();
 		}
 
 		if (!slider_data.tooltip.empty()) {
-			tooltip_pos.y += line_height + TOOLTIP_GAP;
-			track_rect.y += line_height + TOOLTIP_GAP;
+			tooltip_pos.y += line_height + tooltip_gap();
+			track_rect.y += line_height + tooltip_gap();
 
 			line_height = slider_data.font->height();
 		}
 
-		track_rect.y += line_height + TRACK_LABEL_GAP;
+		track_rect.y += line_height + track_label_gap();
 
 		return {
 			.label_rect = label_rect,
@@ -239,13 +264,13 @@ void ui::render_slider(const Container& container, const AnimatedElement& elemen
 
 	// Render handle
 	if (progress >= 0.f && progress <= 1.f) {
-		float handle_x = positions.track_rect.x + (positions.track_rect.w * progress) - (HANDLE_WIDTH / 2);
+		float handle_x = positions.track_rect.x + (positions.track_rect.w * progress) - (handle_width() / 2);
 		gfx::Rect handle_rect(
-			handle_x, positions.track_rect.y - ((HANDLE_WIDTH - TRACK_HEIGHT) / 2), HANDLE_WIDTH, HANDLE_WIDTH
+			handle_x, positions.track_rect.y - ((handle_width() - track_height()) / 2), handle_width(), handle_width()
 		);
 
-		render::rounded_rect_filled(handle_rect.expand(1), handle_border_color, HANDLE_WIDTH);
-		render::rounded_rect_filled(handle_rect, filled_color, HANDLE_WIDTH);
+		render::rounded_rect_filled(handle_rect.expand(1), handle_border_color, handle_width());
+		render::rounded_rect_filled(handle_rect, filled_color, handle_width());
 	}
 }
 
@@ -258,7 +283,7 @@ bool ui::update_slider(const Container& container, AnimatedElement& element) {
 
 	// Create slightly larger clickable area
 	auto clickable_rect = element.element->rect;
-	int extra = (HANDLE_WIDTH / 2) - (float(positions.track_rect.h) / 2);
+	int extra = (handle_width() / 2) - (float(positions.track_rect.h) / 2);
 	if (extra > 0)
 		clickable_rect.h += extra;
 
@@ -499,9 +524,9 @@ ui::AnimatedElement* ui::add_slider(
 	float precision,
 	const std::string& tooltip
 ) {
-	gfx::Size slider_size(render::ui_px(200), font.height() + TRACK_LABEL_GAP + TRACK_HEIGHT);
+	gfx::Size slider_size(render::ui_px(200), font.height() + track_label_gap() + track_height());
 	if (!tooltip.empty())
-		slider_size.h += LINE_HEIGHT_ADD + font.height();
+		slider_size.h += line_height_add() + font.height();
 
 	Element element(
 		id,
@@ -548,9 +573,9 @@ ui::AnimatedElement* ui::add_slider_tied(
 	float precision,
 	const std::string& tooltip
 ) {
-	gfx::Size slider_size(render::ui_px(200), font.height() + TRACK_LABEL_GAP + TRACK_HEIGHT);
+	gfx::Size slider_size(render::ui_px(200), font.height() + track_label_gap() + track_height());
 	if (!tooltip.empty())
-		slider_size.h += LINE_HEIGHT_ADD + font.height();
+		slider_size.h += line_height_add() + font.height();
 
 	if (!slider_observers.contains(id)) {
 		slider_observers.emplace(id, SliderObserver{});
